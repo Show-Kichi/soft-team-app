@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>発表支援AIアプリ</title>
+</head>
+<body>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+.app { max-width: 680px; padding: 1.5rem 0; }
+.tabs { display: flex; gap: 8px; margin-bottom: 1.5rem; }
+.tab { padding: 8px 18px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: transparent; color: var(--color-text-secondary); font-size: 14px; cursor: pointer; transition: all 0.15s; }
+.tab.active { background: var(--color-background-secondary); color: var(--color-text-primary); border-color: var(--color-border-primary); font-weight: 500; }
+.tab:hover:not(.active) { background: var(--color-background-secondary); }
+.panel { display: none; }
+.panel.active { display: block; }
+.section-label { font-size: 12px; color: var(--color-text-secondary); font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 8px; }
+textarea { width: 100%; padding: 10px 12px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); font-size: 14px; font-family: var(--font-sans); color: var(--color-text-primary); background: var(--color-background-primary); resize: vertical; outline: none; }
+textarea:focus { border-color: var(--color-border-primary); }
+.btn-primary { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; background: var(--color-text-primary); color: var(--color-background-primary); border: none; border-radius: var(--border-radius-md); font-size: 14px; font-weight: 500; cursor: pointer; transition: opacity 0.15s; }
+.btn-primary:hover { opacity: 0.85; }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+.question-row { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 8px; }
+.question-row input { flex: 1; padding: 9px 12px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); font-size: 14px; font-family: var(--font-sans); color: var(--color-text-primary); background: var(--color-background-primary); outline: none; }
+.question-row input:focus { border-color: var(--color-border-primary); }
+.btn-add { padding: 9px 12px; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: transparent; cursor: pointer; color: var(--color-text-secondary); font-size: 14px; }
+.btn-add:hover { background: var(--color-background-secondary); }
+.btn-remove { padding: 9px 10px; border: none; background: transparent; cursor: pointer; color: var(--color-text-tertiary); font-size: 16px; }
+.btn-remove:hover { color: var(--color-text-danger); }
+.result-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; margin-bottom: 10px; }
+.result-card h3 { font-size: 14px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 6px; }
+.result-card p { font-size: 13px; color: var(--color-text-secondary); line-height: 1.6; }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 100px; font-size: 11px; font-weight: 500; margin-right: 6px; }
+.badge-high { background: #FCEBEB; color: #A32D2D; }
+.badge-mid { background: #FAEEDA; color: #854F0B; }
+.badge-low { background: #EAF3DE; color: #3B6D11; }
+.badge-cat { background: #EEEDFE; color: #3C3489; }
+.badge-term { background: #E1F5EE; color: #0F6E56; }
+.loading-dots { display: inline-flex; gap: 4px; align-items: center; }
+.dot { width: 6px; height: 6px; border-radius: 50%; background: var(--color-text-secondary); animation: blink 1.2s infinite; }
+.dot:nth-child(2) { animation-delay: 0.3s; }
+.dot:nth-child(3) { animation-delay: 0.6s; }
+@keyframes blink { 0%,80%,100%{opacity:0.2} 40%{opacity:1} }
+.status-msg { font-size: 13px; color: var(--color-text-secondary); padding: 8px 0; display: flex; align-items: center; gap: 8px; }
+.results-area { margin-top: 1.5rem; }
+.count-badge { background: var(--color-background-secondary); color: var(--color-text-secondary); border-radius: 100px; padding: 2px 8px; font-size: 12px; margin-left: 6px; }
+</style>
+
+<div class="app">
+  <h2 class="sr-only">発表支援AIアプリ — 質問整理・スライド分析の2機能を提供します</h2>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('q')"><i class="ti ti-message-circle" aria-hidden="true"></i> 質問整理AI</button>
+    <button class="tab" onclick="switchTab('s')"><i class="ti ti-file-text" aria-hidden="true"></i> スライド分析AI</button>
+  </div>
+
+  <!-- 質問整理 -->
+  <div class="panel active" id="panel-q">
+    <p class="section-label">聴衆からの質問を入力</p>
+    <div id="q-list">
+      <div class="question-row">
+        <input type="text" placeholder="例：なぜこの手法を選んだのですか？" />
+        <button class="btn-remove" onclick="removeQ(this)"><i class="ti ti-x"></i></button>
+      </div>
+    </div>
+    <div style="display:flex; gap:8px; margin-top:8px; margin-bottom:1.25rem;">
+      <button class="btn-add" onclick="addQ()"><i class="ti ti-plus" aria-hidden="true"></i> 質問を追加</button>
+      <button class="btn-add" onclick="loadDemo()"><i class="ti ti-sparkles" aria-hidden="true"></i> デモデータを使う</button>
+    </div>
+    <button class="btn-primary" id="q-btn" onclick="runQA()">
+      <i class="ti ti-wand" aria-hidden="true"></i> 質問を整理する ↗
+    </button>
+    <div class="results-area" id="q-results"></div>
+  </div>
+
+  <!-- スライド分析 -->
+  <div class="panel" id="panel-s">
+    <p class="section-label">スライドのテキストを貼り付け</p>
+    <textarea id="slide-text" rows="7" placeholder="例：本研究では機械学習を用いてX問題を解決するアプローチを提案する。従来手法であるYと比較し、提案手法はZ%の精度向上を達成した。評価にはAデータセットを使用した。"></textarea>
+    <div style="margin-top:10px; margin-bottom:1.25rem;">
+      <button class="btn-add" onclick="loadSlideDemo()"><i class="ti ti-sparkles" aria-hidden="true"></i> デモテキストを使う</button>
+    </div>
+    <button class="btn-primary" id="s-btn" onclick="runSlide()">
+      <i class="ti ti-analyze" aria-hidden="true"></i> スライドを分析する ↗
+    </button>
+    <div class="results-area" id="s-results"></div>
+  </div>
+</div>
+
+<script>
+function switchTab(t) {
+  document.querySelectorAll('.tab').forEach((b,i) => b.classList.toggle('active', (i===0&&t==='q')||(i===1&&t==='s')));
+  document.getElementById('panel-q').classList.toggle('active', t==='q');
+  document.getElementById('panel-s').classList.toggle('active', t==='s');
+}
+
+function addQ() {
+  const row = document.createElement('div');
+  row.className = 'question-row';
+  row.innerHTML = `<input type="text" placeholder="質問を入力してください" /><button class="btn-remove" onclick="removeQ(this)"><i class="ti ti-x"></i></button>`;
+  document.getElementById('q-list').appendChild(row);
+}
+
+function removeQ(btn) {
+  const list = document.getElementById('q-list');
+  if (list.children.length > 1) btn.closest('.question-row').remove();
+}
+
+function loadDemo() {
+  const demos = [
+    'なぜ既存手法ではなく機械学習を選んだのですか？',
+    '機械学習を使った理由は何ですか？',
+    'データセットはどこから取得しましたか？',
+    'サンプル数は統計的に十分ですか？',
+    'データの収集方法を教えてください',
+    '精度はどのように評価しましたか？',
+    '他の手法との比較実験はしましたか？',
+    'この研究の限界は何ですか？',
+    '実用化の見通しはありますか？',
+  ];
+  const list = document.getElementById('q-list');
+  list.innerHTML = '';
+  demos.forEach(d => {
+    const row = document.createElement('div');
+    row.className = 'question-row';
+    row.innerHTML = `<input type="text" value="${d}" /><button class="btn-remove" onclick="removeQ(this)"><i class="ti ti-x"></i></button>`;
+    list.appendChild(row);
+  });
+}
+
+function loadSlideDemo() {
+  document.getElementById('slide-text').value = `本研究では機械学習を用いたテキスト分類アルゴリズムを提案する。\n従来手法であるSVMやNaïve Bayesと比較し、BERTベースのファインチューニングにより精度が87%から93%へ向上した。\n評価にはIMDbおよびSST-2データセットを使用し、5-fold交差検証を実施した。\n提案手法の実行時間はGPU使用時に1エポック約3分であり、実用的な速度を実現している。\n今後はマルチラベル分類への拡張とゼロショット学習の適用を検討している。`;
+}
+
+function setLoading(area, msg) {
+  document.getElementById(area).innerHTML = `<div class="status-msg"><span class="loading-dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span>${msg}</div>`;
+}
+
+async function callClaude(prompt) {
+  if (prompt.includes("質問リスト")) {
+    return JSON.stringify({
+      groups: [
+        {
+          category: "手法の選定理由",
+          category_type: "理解確認質問",
+          priority: "高",
+          summary: "なぜ機械学習を使ったのか、既存手法ではなくこの手法を選んだ理由についての質問が複数あります。",
+          count: 2,
+          hint: "既存手法との違いと、この手法を選んだ理由を最初に説明するとよいです。"
+        },
+        {
+          category: "データについて",
+          category_type: "詳細質問",
+          priority: "中",
+          summary: "データセットの取得方法、サンプル数、信頼性についての質問です。",
+          count: 3,
+          hint: "データの出典、件数、集め方を簡単に説明するとよいです。"
+        },
+        {
+          category: "評価方法",
+          category_type: "比較質問",
+          priority: "中",
+          summary: "精度の評価方法や他の手法との比較についての質問です。",
+          count: 2,
+          hint: "評価指標と比較対象を示すと説得力が出ます。"
+        },
+        {
+          category: "今後の展望",
+          category_type: "実用性質問",
+          priority: "低",
+          summary: "研究の限界や実用化の可能性についての質問です。",
+          count: 2,
+          hint: "現時点での課題と、今後改善したい点を説明するとよいです。"
+        }
+      ]
+    });
+  }
+
+  return JSON.stringify({
+    predicted_questions: [
+      {
+        question: "なぜBERTを使ったのですか？",
+        difficulty: "普通"
+      },
+      {
+        question: "87%から93%への向上は、どの程度大きな改善と言えますか？",
+        difficulty: "難しい"
+      },
+      {
+        question: "IMDbとSST-2以外のデータセットでも同じ結果になりますか？",
+        difficulty: "難しい"
+      }
+    ],
+    terms: [
+      {
+        term: "BERT",
+        explanation: "文章の文脈を考慮して意味を理解するAIモデルです。"
+      },
+      {
+        term: "ファインチューニング",
+        explanation: "既に学習済みのAIモデルを、特定の目的に合わせて追加学習させることです。"
+      },
+      {
+        term: "5-fold交差検証",
+        explanation: "データを5分割し、学習と評価を繰り返して性能を確認する方法です。"
+      }
+    ],
+    supplements: [
+      {
+        point: "BERTを選んだ理由",
+        suggestion: "従来手法より文章の前後関係を考慮できる点を補足するとよいです。"
+      },
+      {
+        point: "精度向上の意味",
+        suggestion: "87%から93%への改善が、実際にどのような効果を持つのか説明すると伝わりやすくなります。"
+      },
+      {
+        point: "評価データセット",
+        suggestion: "IMDbやSST-2がどのようなデータなのかを一言説明するとよいです。"
+      }
+    ]
+  });
+}
+async function runQA() {
+  const questions = [...document.querySelectorAll('#q-list input')].map(i => i.value.trim()).filter(Boolean);
+  if (!questions.length) { alert('質問を1つ以上入力してください'); return; }
+  const btn = document.getElementById('q-btn');
+  btn.disabled = true;
+  setLoading('q-results', 'AIが質問を整理中...');
+
+  const prompt = `以下の発表への質問リストを分析し、必ずJSON形式のみで返してください。前置き・説明・マークダウン記法（バッククォートなど）は一切不要です。
+
+質問リスト：
+${questions.map((q,i) => `${i+1}. ${q}`).join('\n')}
+
+返すJSONの構造：
+{
+  "groups": [
+    {
+      "category": "カテゴリ名（例：手法の選定理由、データについてなど）",
+      "category_type": "理解確認質問 | 詳細質問 | 比較質問 | 実用性質問",
+      "priority": "高 | 中 | 低",
+      "summary": "このグループの質問の要約（1〜2文）",
+      "count": 2,
+      "hint": "回答のヒント（1文）"
+    }
+  ]
+}`;
+
+  try {
+    const raw = await callClaude(prompt);
+    const clean = raw.replace(/```json|```/g, '').trim();
+    const data = JSON.parse(clean);
+    renderQA(data);
+  } catch(e) {
+    document.getElementById('q-results').innerHTML = `<div class="status-msg" style="color:var(--color-text-danger)"><i class="ti ti-alert-circle"></i> エラーが発生しました。もう一度お試しください。</div>`;
+  }
+  btn.disabled = false;
+}
+
+function renderQA(data) {
+  const priMap = { '高': 'badge-high', '中': 'badge-mid', '低': 'badge-low' };
+  let html = `<p style="font-size:13px; color:var(--color-text-secondary); margin-bottom:12px;">${data.groups.length}グループに整理されました。優先度の高い順に回答することをおすすめします。</p>`;
+  const sorted = [...data.groups].sort((a,b) => ['高','中','低'].indexOf(a.priority) - ['高','中','低'].indexOf(b.priority));
+  sorted.forEach((g, i) => {
+    html += `<div class="result-card">
+      <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px; flex-wrap:wrap;">
+        <span style="font-size:13px; color:var(--color-text-tertiary); font-weight:500;">${i+1}</span>
+        <h3 style="margin:0;">${g.category}</h3>
+        <span class="badge ${priMap[g.priority] || 'badge-mid'}">優先度：${g.priority}</span>
+        <span class="badge badge-cat">${g.category_type}</span>
+        <span class="count-badge"><i class="ti ti-message-circle" aria-hidden="true"></i> ${g.count}件</span>
+      </div>
+      <p style="margin-bottom:6px;">${g.summary}</p>
+      <p style="font-size:12px; color:var(--color-text-secondary);"><i class="ti ti-bulb" aria-hidden="true"></i> <strong>回答ヒント：</strong>${g.hint}</p>
+    </div>`;
+  });
+  document.getElementById('q-results').innerHTML = html;
+}
+
+async function runSlide() {
+  const text = document.getElementById('slide-text').value.trim();
+  if (!text) { alert('スライドのテキストを入力してください'); return; }
+  const btn = document.getElementById('s-btn');
+  btn.disabled = true;
+  setLoading('s-results', 'AIがスライドを分析中...');
+
+  const prompt = `以下のスライドテキストを分析し、必ずJSON形式のみで返してください。前置き・説明・マークダウン記法（バッククォートなど）は一切不要です。
+
+スライドテキスト：
+${text}
+
+返すJSONの構造：
+{
+  "predicted_questions": [
+    { "question": "想定質問", "difficulty": "簡単 | 普通 | 難しい" }
+  ],
+  "terms": [
+    { "term": "専門用語", "explanation": "簡単な説明（1文）" }
+  ],
+  "supplements": [
+    { "point": "補足が必要な箇所の説明", "suggestion": "補足の提案（1文）" }
+  ]
+}`;
+
+  try {
+    const raw = await callClaude(prompt);
+    const clean = raw.replace(/```json|```/g, '').trim();
+    const data = JSON.parse(clean);
+    renderSlide(data);
+  } catch(e) {
+    document.getElementById('s-results').innerHTML = `<div class="status-msg" style="color:var(--color-text-danger)"><i class="ti ti-alert-circle"></i> エラーが発生しました。もう一度お試しください。</div>`;
+  }
+  btn.disabled = false;
+}
+
+function renderSlide(data) {
+  const diffMap = { '簡単': 'badge-low', '普通': 'badge-mid', '難しい': 'badge-high' };
+  let html = '';
+
+  html += `<div class="result-card">
+    <p class="section-label" style="margin-bottom:10px;"><i class="ti ti-help-circle" aria-hidden="true"></i> 想定される質問<span class="count-badge">${data.predicted_questions.length}件</span></p>`;
+  data.predicted_questions.forEach(q => {
+    html += `<div style="display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:0.5px solid var(--color-border-tertiary);">
+      <span class="badge ${diffMap[q.difficulty] || 'badge-mid'}" style="flex-shrink:0;margin-top:1px;">${q.difficulty}</span>
+      <p style="font-size:13px;color:var(--color-text-primary);line-height:1.6;">${q.question}</p>
+    </div>`;
+  });
+  html += `</div>`;
+
+  html += `<div class="result-card">
+    <p class="section-label" style="margin-bottom:10px;"><i class="ti ti-book" aria-hidden="true"></i> 難しい用語<span class="count-badge">${data.terms.length}件</span></p>`;
+  data.terms.forEach(t => {
+    html += `<div style="padding:6px 0;border-bottom:0.5px solid var(--color-border-tertiary);">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
+        <span class="badge badge-term">${t.term}</span>
+      </div>
+      <p style="font-size:13px;color:var(--color-text-secondary);padding-left:4px;">${t.explanation}</p>
+    </div>`;
+  });
+  html += `</div>`;
+
+  html += `<div class="result-card">
+    <p class="section-label" style="margin-bottom:10px;"><i class="ti ti-notes" aria-hidden="true"></i> 補足説明の提案<span class="count-badge">${data.supplements.length}件</span></p>`;
+  data.supplements.forEach(s => {
+    html += `<div style="padding:6px 0;border-bottom:0.5px solid var(--color-border-tertiary);">
+      <p style="font-size:13px;font-weight:500;color:var(--color-text-primary);margin-bottom:3px;">${s.point}</p>
+      <p style="font-size:13px;color:var(--color-text-secondary);"><i class="ti ti-arrow-right" style="font-size:12px;" aria-hidden="true"></i> ${s.suggestion}</p>
+    </div>`;
+  });
+  html += `</div>`;
+
+  document.getElementById('s-results').innerHTML = html;
+}
+</script>
+</body>
+</html>
