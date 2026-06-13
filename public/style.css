@@ -1,0 +1,740 @@
+/* =====================================================
+   発表支援AIアプリ - 共通スタイル (style.css)
+   ===================================================== */
+
+/* リセット & ベース */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP",
+    "Yu Gothic", sans-serif;
+  background: #f5f7fa;
+  color: #1a1a2e;
+  line-height: 1.7;
+  min-height: 100vh;
+}
+
+/* =====================================================
+   共通レイアウト
+   ===================================================== */
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.page-header {
+  background: #ffffff;
+  border-bottom: 1px solid #e8ecf0;
+  padding: 16px 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.page-header .container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.page-header .app-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #2563eb;
+  text-decoration: none;
+}
+
+.page-header .page-title {
+  font-size: 14px;
+  color: #64748b;
+}
+
+.back-link {
+  font-size: 13px;
+  color: #2563eb;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+}
+
+.main-content {
+  padding: 32px 0 60px;
+}
+
+/* =====================================================
+   カード
+   ===================================================== */
+.card {
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e8ecf0;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-title .icon {
+  font-size: 20px;
+}
+
+.card-desc {
+  font-size: 14px;
+  color: #64748b;
+  margin-bottom: 16px;
+}
+
+/* =====================================================
+   ボタン
+   ===================================================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s;
+  text-decoration: none;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn-primary {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.btn-primary:hover {
+  background: #1d4ed8;
+}
+
+.btn-secondary {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
+.btn-secondary:hover {
+  background: #e2e8f0;
+}
+
+.btn-danger {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.btn-danger:hover {
+  background: #fee2e2;
+}
+
+.btn-success {
+  background: #10b981;
+  color: #ffffff;
+}
+
+.btn-success:hover {
+  background: #059669;
+}
+
+.btn-lg {
+  padding: 14px 28px;
+  font-size: 15px;
+  border-radius: 10px;
+}
+
+.btn-full {
+  width: 100%;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* =====================================================
+   フォーム
+   ===================================================== */
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 6px;
+}
+
+.form-input,
+.form-textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: inherit;
+  color: #1a1a2e;
+  background: #ffffff;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.form-input:focus,
+.form-textarea:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 120px;
+  line-height: 1.6;
+}
+
+/* =====================================================
+   トップページ
+   ===================================================== */
+.hero {
+  text-align: center;
+  padding: 48px 20px 40px;
+}
+
+.hero-badge {
+  display: inline-block;
+  background: #eff6ff;
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 100px;
+  margin-bottom: 16px;
+  letter-spacing: 0.04em;
+}
+
+.hero-title {
+  font-size: 32px;
+  font-weight: 800;
+  color: #1a1a2e;
+  margin-bottom: 12px;
+  line-height: 1.3;
+}
+
+.hero-subtitle {
+  font-size: 15px;
+  color: #64748b;
+  max-width: 500px;
+  margin: 0 auto 16px;
+}
+
+.hero-diff {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #f0fdf4;
+  color: #15803d;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid #bbf7d0;
+}
+
+/* 機能カードグリッド */
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+  margin-top: 8px;
+}
+
+.feature-card {
+  background: #ffffff;
+  border: 1.5px solid #e8ecf0;
+  border-radius: 16px;
+  padding: 28px 24px;
+  text-align: left;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-card:hover {
+  border-color: #93c5fd;
+  box-shadow: 0 4px 20px rgba(37, 99, 235, 0.08);
+  transform: translateY(-2px);
+}
+
+.feature-card.disabled {
+  opacity: 0.65;
+}
+
+.feature-card.disabled:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: #e8ecf0;
+}
+
+.feature-card-icon {
+  font-size: 36px;
+  margin-bottom: 14px;
+  display: block;
+}
+
+.feature-card-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 100px;
+  margin-bottom: 10px;
+  letter-spacing: 0.04em;
+}
+
+.tag-main {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.tag-sub {
+  background: #f0fdf4;
+  color: #15803d;
+}
+
+.tag-future {
+  background: #f8fafc;
+  color: #94a3b8;
+  border: 1px solid #e2e8f0;
+}
+
+.feature-card-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-bottom: 8px;
+}
+
+.feature-card-desc {
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 20px;
+  line-height: 1.65;
+}
+
+.feature-card-points {
+  list-style: none;
+  margin-bottom: 20px;
+}
+
+.feature-card-points li {
+  font-size: 12px;
+  color: #475569;
+  padding: 3px 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.feature-card-points li::before {
+  content: "✓";
+  color: #10b981;
+  font-weight: 700;
+  font-size: 11px;
+}
+
+.coming-soon-badge {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: #f1f5f9;
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 100px;
+}
+
+/* =====================================================
+   質問整理AI - 入口ページ
+   ===================================================== */
+.role-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.role-card {
+  background: #ffffff;
+  border: 2px solid #e8ecf0;
+  border-radius: 14px;
+  padding: 28px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  display: block;
+}
+
+.role-card:hover {
+  border-color: #2563eb;
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.1);
+}
+
+.role-card-icon {
+  font-size: 40px;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.role-card-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-bottom: 6px;
+}
+
+.role-card-desc {
+  font-size: 13px;
+  color: #64748b;
+}
+
+@media (max-width: 600px) {
+  .role-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =====================================================
+   発表者ページ
+   ===================================================== */
+.qr-section {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.qr-box {
+  flex-shrink: 0;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+}
+
+#qrcode canvas,
+#qrcode img {
+  display: block;
+}
+
+.qr-info {
+  flex: 1;
+  min-width: 220px;
+}
+
+.qr-url-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-family: monospace;
+  font-size: 13px;
+  color: #475569;
+  word-break: break-all;
+  margin-bottom: 8px;
+}
+
+.qr-note {
+  font-size: 12px;
+  color: #94a3b8;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-top: 10px;
+  line-height: 1.6;
+}
+
+/* 質問一覧 */
+.question-list {
+  list-style: none;
+}
+
+.question-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 0;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 14px;
+  color: #334155;
+}
+
+.question-item:last-child {
+  border-bottom: none;
+}
+
+.question-num {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  background: #eff6ff;
+  color: #2563eb;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+}
+
+.question-text {
+  flex: 1;
+  line-height: 1.6;
+}
+
+.question-time {
+  font-size: 11px;
+  color: #94a3b8;
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 32px 20px;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.empty-icon {
+  font-size: 40px;
+  margin-bottom: 10px;
+  display: block;
+}
+
+.action-bar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+/* 質問整理結果 */
+.result-group {
+  border-radius: 12px;
+  border: 1px solid #e8ecf0;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.result-group-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  border-bottom: 1px solid #e8ecf0;
+}
+
+.priority-badge {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 100px;
+}
+
+.priority-high {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.priority-mid {
+  background: #fffbeb;
+  color: #d97706;
+  border: 1px solid #fde68a;
+}
+
+.priority-low {
+  background: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid #bbf7d0;
+}
+
+.result-group-header-high {
+  background: #fff5f5;
+}
+
+.result-group-header-mid {
+  background: #fffdf0;
+}
+
+.result-group-header-low {
+  background: #f6fff8;
+}
+
+.result-category {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.result-type {
+  font-size: 12px;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 2px 8px;
+  border-radius: 100px;
+}
+
+.result-count {
+  font-size: 12px;
+  color: #64748b;
+  margin-left: auto;
+}
+
+.result-group-body {
+  padding: 16px 18px;
+  background: #ffffff;
+}
+
+.result-summary {
+  font-size: 14px;
+  color: #334155;
+  margin-bottom: 10px;
+  line-height: 1.65;
+}
+
+.result-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13px;
+  color: #0369a1;
+  line-height: 1.6;
+}
+
+/* =====================================================
+   聴衆ページ
+   ===================================================== */
+.audience-hero {
+  text-align: center;
+  padding: 40px 20px 32px;
+}
+
+.audience-hero-icon {
+  font-size: 56px;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.audience-hero-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: #1a1a2e;
+  margin-bottom: 8px;
+}
+
+.audience-hero-sub {
+  font-size: 14px;
+  color: #64748b;
+}
+
+.success-toast {
+  display: none;
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  border-radius: 10px;
+  padding: 14px 18px;
+  font-size: 14px;
+  color: #15803d;
+  font-weight: 500;
+  text-align: center;
+  margin-top: 12px;
+}
+
+.success-toast.show {
+  display: block;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+
+/* =====================================================
+   ローディング
+   ===================================================== */
+.loading-overlay {
+  display: none;
+  text-align: center;
+  padding: 32px;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.loading-overlay.show {
+  display: block;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e2e8f0;
+  border-top: 3px solid #2563eb;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 12px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* =====================================================
+   レスポンシブ
+   ===================================================== */
+@media (max-width: 640px) {
+  .hero-title { font-size: 24px; }
+  .feature-grid { grid-template-columns: 1fr; }
+  .qr-section { flex-direction: column; align-items: center; }
+  .action-bar { flex-direction: column; }
+  .action-bar .btn { width: 100%; }
+  .result-group-header { flex-wrap: wrap; }
+}

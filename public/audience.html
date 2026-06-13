@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>質問を送る - 発表支援AIアプリ</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="page-header">
+      <div class="container">
+        <a href="index.html" class="app-name">🎤 発表支援AI</a>
+        <span class="page-title">👥 聴衆ページ</span>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="container" style="max-width: 560px;">
+
+        <!-- ヒーロー -->
+        <div class="audience-hero">
+          <span class="audience-hero-icon">✋</span>
+          <h1 class="audience-hero-title">発表者に質問を送る</h1>
+          <p class="audience-hero-sub">
+            気になったこと、疑問に思ったことを送信してください。<br />
+            AIが整理して発表者に届けます。
+          </p>
+        </div>
+
+        <!-- 質問フォーム -->
+        <div class="card">
+          <div class="form-group">
+            <label class="form-label" for="question-input">質問を入力してください</label>
+            <textarea
+              id="question-input"
+              class="form-textarea"
+              placeholder="例：なぜこの手法を選んだのですか？"
+              rows="4"
+              maxlength="500"
+            ></textarea>
+            <div style="font-size: 12px; color: #94a3b8; text-align: right; margin-top: 4px;">
+              <span id="char-count">0</span> / 500文字
+            </div>
+          </div>
+
+          <button class="btn btn-primary btn-lg btn-full" id="send-btn" onclick="submitQuestion()">
+            📨 質問を送信する
+          </button>
+
+          <!-- 送信完了メッセージ -->
+          <div class="success-toast" id="success-toast">
+            ✅ 質問を送信しました。発表者画面に反映されます。
+          </div>
+
+          <!-- エラーメッセージ -->
+          <div id="error-msg" style="display:none; color: #dc2626; font-size: 13px; margin-top: 10px; text-align: center;"></div>
+        </div>
+
+        <!-- 送信した質問の記録 -->
+        <div class="card" id="sent-list-card" style="display:none;">
+          <h3 class="card-title" style="font-size: 14px;">
+            <span class="icon">📝</span> この端末から送った質問
+          </h3>
+          <ul class="question-list" id="sent-list"></ul>
+          <div style="text-align: center; margin-top: 12px;">
+            <button class="btn btn-secondary" onclick="clearSentList()" style="font-size: 12px; padding: 6px 14px;">
+              リストをクリア
+            </button>
+          </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 16px;">
+          <p style="font-size: 12px; color: #94a3b8;">
+            送信した質問はAIによって整理され、発表者に届きます
+          </p>
+        </div>
+
+      </div>
+    </main>
+
+    <script src="script.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        initAudiencePage();
+      });
+    </script>
+  </body>
+</html>
