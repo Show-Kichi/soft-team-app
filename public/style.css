@@ -648,6 +648,52 @@ body {
   line-height: 1.6;
 }
 
+
+/* 自動回答 */
+.auto-answer-box {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-top: 8px;
+}
+
+.auto-answer-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #15803d;
+  margin-bottom: 4px;
+}
+
+.auto-answer-text {
+  font-size: 13px;
+  color: #334155;
+  line-height: 1.6;
+}
+
+.auto-answer-meta {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 6px;
+}
+
+.auto-answer-card {
+  background: #f0fdf4;
+  border-color: #86efac;
+}
+
+.auto-answer-content {
+  font-size: 14px;
+  color: #14532d;
+  line-height: 1.7;
+}
+
+.auto-answer-matched {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 8px;
+}
+
 /* =====================================================
    聴衆ページ
    ===================================================== */
@@ -737,4 +783,89 @@ body {
   .action-bar { flex-direction: column; }
   .action-bar .btn { width: 100%; }
   .result-group-header { flex-wrap: wrap; }
+}
+
+/* =====================================================
+   過去質問データベースアップロード
+   ===================================================== */
+.qa-db-status {
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 13px;
+  line-height: 1.7;
+  margin-bottom: 14px;
+}
+
+.qa-db-status-ready {
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  color: #14532d;
+}
+
+.qa-db-status-warning {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+}
+
+.qa-db-status-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}
+
+.csv-format-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+}
+
+.csv-format-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+  margin-bottom: 6px;
+}
+
+.csv-format-box pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #334155;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+}
+
+.qa-upload-msg {
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 13px;
+  line-height: 1.7;
+  margin-top: 14px;
+}
+
+.qa-upload-msg-success {
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  color: #14532d;
+}
+
+.qa-upload-msg-info {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
+}
+
+.qa-upload-msg-warning {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+}
+
+.qa-upload-msg-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
 }
