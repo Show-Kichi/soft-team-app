@@ -24,6 +24,9 @@ function initPresenterPage() {
     qrContainer.innerHTML = `<div style="width:160px;height:160px;border:2px solid #e2e8f0;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#94a3b8;text-align:center;padding:10px;">QRコード<br>ライブラリ読込中</div>`;
   }
 
+  // 過去質問DBの状態を取得
+  fetchQaDatabaseStatus();
+
   // 質問を取得
   fetchQuestions();
 
@@ -39,6 +42,144 @@ function copyAudienceUrl() {
   }).catch(() => {
     alert("コピーできませんでした。URLを手動でコピーしてください。\n" + url);
   });
+}
+
+async function fetchQaDatabaseStatus() {
+  const statusEl = document.getElementById("qa-db-status");
+
+  if (!statusEl) return;
+
+  try {
+    const res = await fetch("/api/qa-database");
+    const data = await res.json();
+
+    renderQaDatabaseStatus(data);
+  } catch (e) {
+    statusEl.className = "qa-db-status qa-db-status-error";
+    statusEl.textContent = "過去質問DBの状態を取得できませんでした。";
+  }
+}
+
+function renderQaDatabaseStatus(data) {
+  const statusEl = document.getElementById("qa-db-status");
+
+  if (!statusEl) return;
+
+  const ready = data.semanticSearchReady;
+
+  statusEl.className = `qa-db-status ${
+    ready ? "qa-db-status-ready" : "qa-db-status-warning"
+  }`;
+
+  if (ready) {
+    statusEl.innerHTML = `
+      ✅ 意味検索は有効です。<br />
+      登録Q&A: <strong>${data.count}</strong>件 / ベクトル化済み: <strong>${data.indexedCount}</strong>件<br />
+      モデル: <code>${escapeHtml(data.model)}</code> / しきい値: <code>${data.threshold}</code>
+    `;
+  } else {
+    statusEl.innerHTML = `
+      ⚠️ 過去質問DBは登録されていますが、意味検索はまだ有効ではありません。<br />
+      登録Q&A: <strong>${data.count}</strong>件 / ベクトル化済み: <strong>${data.indexedCount}</strong>件<br />
+      ${
+        data.semanticSearchError
+          ? `理由: ${escapeHtml(data.semanticSearchError)}`
+          : "OPENAI_API_KEY の設定やCSVの内容を確認してください。"
+      }
+    `;
+  }
+}
+
+async function uploadQaDatabase() {
+  const fileInput = document.getElementById("qa-csv-file");
+  const btn = document.getElementById("upload-qa-btn");
+
+  if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+    showQaUploadMsg("CSVファイルを選択してください。", "error");
+    return;
+  }
+
+  const file = fileInput.files[0];
+
+  if (!file.name.toLowerCase().endsWith(".csv")) {
+    showQaUploadMsg(".csv ファイルを選択してください。", "error");
+    return;
+  }
+
+  btn.disabled = true;
+  showQaUploadMsg("CSVをアップロードして、意味検索用のデータを作成しています...", "info");
+
+  try {
+    const csvText = await file.text();
+
+    const res = await fetch("/api/upload-qa-database", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ csvText }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok || !data.success) {
+      showQaUploadMsg(data.error || "アップロードに失敗しました。", "error");
+      return;
+    }
+
+    if (data.semanticSearchReady) {
+      showQaUploadMsg(
+        `✅ 過去質問DBを更新しました。${data.count}件を登録し、${data.indexedCount}件を意味検索に反映しました。`,
+        "success"
+      );
+    } else {
+      showQaUploadMsg(
+        `⚠️ CSVは保存しましたが、意味検索はまだ有効ではありません。理由: ${
+          data.semanticSearchError || "OPENAI_API_KEY を確認してください。"
+        }`,
+        "warning"
+      );
+    }
+
+    renderQaDatabaseStatus(data);
+  } catch (e) {
+    showQaUploadMsg("アップロードに失敗しました。CSVの形式や通信状態を確認してください。", "error");
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function showQaUploadMsg(message, type) {
+  const msgEl = document.getElementById("qa-upload-msg");
+
+  if (!msgEl) return;
+
+  msgEl.style.display = "block";
+  msgEl.className = `qa-upload-msg qa-upload-msg-${type}`;
+  msgEl.textContent = message;
+}
+
+function downloadQaTemplate() {
+  const csv = `question,answer
+この研究の目的は何ですか？,発表中の質問を整理し、発表者が答えやすくすることです。
+なぜAIを使うのですか？,似た質問の検出や過去質問との照合ができるためです。
+`;
+
+  const blob = new Blob(["\uFEFF" + csv], {
+    type: "text/csv;charset=utf-8",
+  });
+
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "qa-database-template.csv";
+
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+
+  URL.revokeObjectURL(url);
 }
 
 // =====================================================
@@ -72,13 +213,25 @@ function renderQuestionList(questions) {
     return;
   }
 
-  const listHtml = questions.map((q, i) => `
-    <li class="question-item">
-      <span class="question-num">${i + 1}</span>
-      <span class="question-text">${escapeHtml(q.text)}</span>
-      <span class="question-time">${q.createdAt}</span>
-    </li>
-  `).join("");
+  const listHtml = questions.map((q, i) => {
+    const autoAnswerHtml = q.autoAnswered ? `
+      <div class="auto-answer-box">
+        <div class="auto-answer-label">🤖 自動回答済み</div>
+        <div class="auto-answer-text">${escapeHtml(q.answer)}</div>
+        <div class="auto-answer-meta">意味的に近い過去質問：${escapeHtml(q.matchedQuestion)} / 類似度：${q.similarity}</div>
+      </div>` : "";
+
+    return `
+      <li class="question-item">
+        <span class="question-num">${i + 1}</span>
+        <span class="question-text">
+          ${escapeHtml(q.text)}
+          ${autoAnswerHtml}
+        </span>
+        <span class="question-time">${q.createdAt}</span>
+      </li>
+    `;
+  }).join("");
 
   area.innerHTML = `<ul class="question-list">${listHtml}</ul>`;
 }
@@ -240,6 +393,16 @@ async function submitQuestion() {
       // 送信成功
       input.value = "";
       document.getElementById("char-count").textContent = "0";
+
+      // 過去質問DBに意味的に近い質問がある場合は、その場で回答を表示
+      if (data.autoAnswer) {
+        successToast.textContent = "✅ 過去の質問と意味的に近いため、自動回答を表示しました。";
+        renderAudienceAutoAnswer(data.autoAnswer);
+      } else {
+        successToast.textContent = "✅ 質問を送信しました。発表者画面に反映されます。";
+        hideAudienceAutoAnswer();
+      }
+
       successToast.classList.add("show");
 
       // 送信済みリストに追加
@@ -257,13 +420,21 @@ async function submitQuestion() {
   }
 }
 
-// Enterキーで送信（Shift+Enterは改行）
-document.addEventListener("keydown", function (e) {
-  if (e.target.id === "question-input" && e.key === "Enter" && !e.shiftKey) {
-    e.preventDefault();
-    submitQuestion();
-  }
-});
+function renderAudienceAutoAnswer(autoAnswer) {
+  const card = document.getElementById("auto-answer-card");
+  const answer = document.getElementById("auto-answer-content");
+  const matched = document.getElementById("auto-answer-matched");
+  if (!card || !answer || !matched) return;
+
+  answer.textContent = autoAnswer.answer;
+  matched.textContent = `意味的に近い過去質問：${autoAnswer.matchedQuestion} / 類似度：${autoAnswer.similarity}`;
+  card.style.display = "block";
+}
+
+function hideAudienceAutoAnswer() {
+  const card = document.getElementById("auto-answer-card");
+  if (card) card.style.display = "none";
+}
 
 function showError(msg) {
   const errorMsg = document.getElementById("error-msg");
