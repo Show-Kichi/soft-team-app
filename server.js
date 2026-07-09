@@ -53,12 +53,319 @@ const uploadRoot = path.join(__dirname, "uploads");
 const slideUploadDir = path.join(uploadRoot, "slides");
 fs.mkdirSync(slideUploadDir, { recursive: true });
 
+// .envファイルがあれば読み込む（dotenvなしで動く簡易版）
+// 例: OPENAI_API_KEY=sk-...
+function loadEnvFile() {
+  const envPath = path.join(__dirname, ".env");
+  if (!fs.existsSync(envPath)) return;
+
+  const lines = fs.readFileSync(envPath, "utf-8").split(/\r?\n/);
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+
+    const eqIndex = trimmed.indexOf("=");
+    if (eqIndex === -1) continue;
+
+    const key = trimmed.slice(0, eqIndex).trim();
+    let value = trimmed.slice(eqIndex + 1).trim();
+
+    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+      value = value.slice(1, -1);
+    }
+
+    if (key && !process.env[key]) {
+      process.env[key] = value;
+    }
+  }
+}
+
+loadEnvFile();
+
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const EMBEDDING_MODEL = process.env.EMBEDDING_MODEL || "text-embedding-3-small";
+const SEMANTIC_THRESHOLD = Number(process.env.SEMANTIC_THRESHOLD || 0.75);
+
 // JSONリクエストを受け取れるようにする
 app.use(express.json({ limit: "10mb" }));
 
 // publicフォルダとアップロード済みスライドを静的ファイルとして配信
 app.use(express.static("public"));
 app.use("/uploads", express.static(uploadRoot));
+
+
+// =====================================================
+// 過去質問データベース + OpenAI Embeddingsによる意味検索
+// qa-database.json に { "question": "...", "answer": "..." } を追加すると、
+// 意味的に近い質問が来たときに自動で回答します。
+// =====================================================
+const qaDatabasePath = path.join(__dirname, "qa-database.json");
+
+let qaDatabase = [];
+let qaEmbeddingIndex = [];
+let semanticSearchReady = false;
+let semanticSearchError = null;
+
+function loadQaDatabase() {
+  try {
+    const raw = fs.readFileSync(qaDatabasePath, "utf-8");
+    const data = JSON.parse(raw);
+
+    if (!Array.isArray(data)) {
+      console.warn("qa-database.json は配列形式にしてください");
+      return [];
+    }
+
+    return data
+      .filter((item) => item.question && item.answer)
+      .map((item) => ({
+        question: String(item.question),
+        answer: String(item.answer),
+      }));
+  } catch (e) {
+    console.warn("qa-database.json を読み込めませんでした。自動回答機能は無効です。", e.message);
+    return [];
+  }
+}
+
+function splitCsvRows(text) {
+  const rows = [];
+  let row = [];
+  let field = "";
+  let inQuotes = false;
+
+  const normalizedText = String(text || "").replace(/^\uFEFF/, "");
+
+  for (let i = 0; i < normalizedText.length; i++) {
+    const char = normalizedText[i];
+    const next = normalizedText[i + 1];
+
+    if (char === "\"") {
+      if (inQuotes && next === "\"") {
+        field += "\"";
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+
+    if (char === "," && !inQuotes) {
+      row.push(field);
+      field = "";
+      continue;
+    }
+
+    if ((char === "\n" || char === "\r") && !inQuotes) {
+      if (char === "\r" && next === "\n") i++;
+
+      row.push(field);
+
+      if (row.some((cell) => String(cell).trim() !== "")) {
+        rows.push(row);
+      }
+
+      row = [];
+      field = "";
+      continue;
+    }
+
+    field += char;
+  }
+
+  row.push(field);
+
+  if (row.some((cell) => String(cell).trim() !== "")) {
+    rows.push(row);
+  }
+
+  return rows;
+}
+
+function parseQaCsv(csvText) {
+  const rows = splitCsvRows(csvText);
+
+  if (rows.length < 2) {
+    throw new Error("CSVにはヘッダー行と、少なくとも1件のQ&Aが必要です");
+  }
+
+  const headers = rows[0].map((cell) =>
+    String(cell || "").trim().toLowerCase()
+  );
+
+  const questionIndex = headers.findIndex((h) =>
+    ["question", "questions", "q", "質問", "過去質問"].includes(h)
+  );
+
+  const answerIndex = headers.findIndex((h) =>
+    ["answer", "answers", "a", "回答", "答え"].includes(h)
+  );
+
+  if (questionIndex === -1 || answerIndex === -1) {
+    throw new Error("CSVの1行目に question,answer または 質問,回答 の列名を入れてください");
+  }
+
+  const items = [];
+  const seenQuestions = new Set();
+
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+
+    const question = String(row[questionIndex] || "").trim();
+    const answer = String(row[answerIndex] || "").trim();
+
+    if (!question && !answer) continue;
+
+    if (!question || !answer) {
+      throw new Error(`${i + 1}行目に question または answer がありません`);
+    }
+
+    const dedupeKey = question.toLowerCase();
+
+    if (seenQuestions.has(dedupeKey)) {
+      continue;
+    }
+
+    seenQuestions.add(dedupeKey);
+
+    items.push({
+      question,
+      answer,
+    });
+  }
+
+  if (items.length === 0) {
+    throw new Error("有効なQ&Aがありません。question と answer の両方を入力してください");
+  }
+
+  return items;
+}
+
+function saveQaDatabase(items) {
+  fs.writeFileSync(
+    qaDatabasePath,
+    JSON.stringify(items, null, 2),
+    "utf-8"
+  );
+}
+
+async function createEmbeddings(inputs) {
+  if (!OPENAI_API_KEY) {
+    throw new Error("OPENAI_API_KEY が設定されていません");
+  }
+
+  if (!Array.isArray(inputs) || inputs.length === 0) {
+    return [];
+  }
+
+  const response = await fetch("https://api.openai.com/v1/embeddings", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${OPENAI_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: EMBEDDING_MODEL,
+      input: inputs,
+      encoding_format: "float",
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`OpenAI Embeddings API error ${response.status}: ${errorText}`);
+  }
+
+  const data = await response.json();
+  return data.data
+    .sort((a, b) => a.index - b.index)
+    .map((item) => item.embedding);
+}
+
+function cosineSimilarity(a, b) {
+  if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) return 0;
+
+  let dot = 0;
+  let normA = 0;
+  let normB = 0;
+
+  for (let i = 0; i < a.length; i++) {
+    dot += a[i] * b[i];
+    normA += a[i] * a[i];
+    normB += b[i] * b[i];
+  }
+
+  if (normA === 0 || normB === 0) return 0;
+  return dot / (Math.sqrt(normA) * Math.sqrt(normB));
+}
+
+async function rebuildQaEmbeddingIndex() {
+  qaDatabase = loadQaDatabase();
+  qaEmbeddingIndex = [];
+  semanticSearchReady = false;
+  semanticSearchError = null;
+
+  if (qaDatabase.length === 0) {
+    console.warn("qa-database.json に有効なQ&Aがありません。自動回答機能は無効です。");
+    return;
+  }
+
+  if (!OPENAI_API_KEY) {
+    semanticSearchError = "OPENAI_API_KEY が設定されていません";
+    console.warn("⚠️ OPENAI_API_KEY が未設定のため、意味検索による自動回答は無効です。");
+    console.warn("   .env に OPENAI_API_KEY=sk-... を書いてから再起動してください。");
+    return;
+  }
+
+  try {
+    const questionEmbeddings = await createEmbeddings(qaDatabase.map((item) => item.question));
+
+    qaEmbeddingIndex = qaDatabase
+      .map((item, index) => ({
+        ...item,
+        embedding: questionEmbeddings[index],
+      }))
+      .filter((item) => Array.isArray(item.embedding));
+
+    semanticSearchReady = qaEmbeddingIndex.length > 0;
+    console.log(`🤖 意味検索インデックスを作成しました: ${qaEmbeddingIndex.length}件 / model=${EMBEDDING_MODEL} / threshold=${SEMANTIC_THRESHOLD}`);
+  } catch (e) {
+    semanticSearchError = e.message;
+    console.warn("⚠️ 意味検索インデックスの作成に失敗しました:", e.message);
+  }
+}
+
+async function findAutoAnswer(text) {
+  if (!semanticSearchReady || qaEmbeddingIndex.length === 0) {
+    return null;
+  }
+
+  const [questionEmbedding] = await createEmbeddings([text]);
+  let best = null;
+
+  for (const item of qaEmbeddingIndex) {
+    const similarity = cosineSimilarity(questionEmbedding, item.embedding);
+    if (!best || similarity > best.similarity) {
+      best = {
+        question: item.question,
+        answer: item.answer,
+        similarity,
+      };
+    }
+  }
+
+  // Embeddingsのコサイン類似度がしきい値以上なら、意味的に近い過去質問として扱う
+  if (best && best.similarity >= SEMANTIC_THRESHOLD) {
+    return {
+      answer: best.answer,
+      matchedQuestion: best.question,
+      similarity: Number(best.similarity.toFixed(3)),
+      method: "openai-embeddings",
+    };
+  }
+
+  return null;
+}
 
 
 // =====================================================
