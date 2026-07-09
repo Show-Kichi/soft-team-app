@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>聴衆ページを共有 - 発表支援AI</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <section class="screen active">
+    <div class="audience-shell">
+      <div class="topbar">
+        <div>
+          <div class="brand">聴衆ページを共有</div>
+          <div class="muted" style="font-size:13px">このページを聴衆に見せてください</div>
+        </div>
+        <button class="btn secondary small" onclick="window.close()">閉じる</button>
+      </div>
+
+      <div class="audience-status">
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:60vh">
+          <div style="text-align:center">
+            <h2 style="margin-bottom:20px">聴衆画面へのアクセス</h2>
+            <p class="muted" style="margin-bottom:30px">以下のQRコードをスキャンするか、URLにアクセスしてください</p>
+
+            <div style="background:#fff;padding:20px;border-radius:8px;display:inline-block;margin-bottom:30px;box-shadow:0 1px 3px rgba(0,0,0,0.1)">
+              <div id="qrcode" style="display:inline-block"></div>
+            </div>
+
+            <div style="margin:20px 0">
+              <label style="display:block;font-weight:600;margin-bottom:8px">聴衆用URL</label>
+              <div class="qr-url-box" id="audience-url" style="background:#f1f5f9;padding:12px;border-radius:6px;word-break:break-all;margin-bottom:12px">
+                読み込み中...
+              </div>
+              <button class="btn" type="button" onclick="copyShareUrl()" style="width:100%">URLをコピー</button>
+            </div>
+
+            <p class="muted" style="margin-top:30px;font-size:13px">このページを表示したまま発表を進めると、聴衆が質問を送ることができます。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div id="toast" class="toast"></div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script>
+    function copyShareUrl() {
+      const urlEl = document.getElementById("audience-url");
+      const url = urlEl ? urlEl.textContent : new URL("audience.html", window.location.href).href;
+
+      if (!navigator.clipboard) {
+        alert("URLを手動でコピーしてください。\n" + url);
+        return;
+      }
+
+      navigator.clipboard.writeText(url).then(() => {
+        const toast = document.getElementById("toast");
+        toast.textContent = "URLをコピーしました ✅";
+        toast.style.display = "block";
+        setTimeout(() => {
+          toast.style.display = "none";
+        }, 2000);
+      }).catch(() => {
+        alert("コピーできませんでした。URLを手動でコピーしてください。\n" + url);
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      const audienceUrl = new URL("audience.html", window.location.href).href;
+      const audienceUrlEl = document.getElementById("audience-url");
+      if (audienceUrlEl) {
+        audienceUrlEl.textContent = audienceUrl;
+      }
+
+      // QRコード生成
+      const qrcodeEl = document.getElementById("qrcode");
+      if (qrcodeEl && !qrcodeEl.querySelector("canvas")) {
+        new QRCode(qrcodeEl, {
+          text: audienceUrl,
+          width: 200,
+          height: 200,
+          colorDark: "#000000",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.H
+        });
+      }
+    });
+  </script>
+</body>
+</html>

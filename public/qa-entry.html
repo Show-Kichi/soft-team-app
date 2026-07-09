@@ -1,57 +1,57 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>質問整理AI - 発表支援AIアプリ</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <header class="page-header">
-      <div class="container">
-        <a href="index.html" class="app-name">🎤 発表支援AI</a>
-        <span class="page-title">質問整理AI</span>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>プロジェクト管理 - 発表支援AI</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <section class="screen active">
+    <div class="app">
+      <div class="topbar">
+        <div>
+          <div class="brand">プロジェクト管理</div>
+          <div class="muted" style="font-size:13px">発表資料・聴衆URL・Q&A CSVを管理します。</div>
+        </div>
+        <div class="topbar-actions">
+          <a class="btn secondary small" href="index.html">ログアウト</a>
+        </div>
       </div>
-    </header>
 
-    <main class="main-content">
-      <div class="container">
+      <div class="project-grid">
+        <a class="project-card" href="presenter.html">
+          <h2>質問整理AI デモ</h2>
+          <p class="muted">聴衆からの質問を集め、AIで整理する発表用プロジェクト</p>
+          <div class="project-meta">
+            <span class="tag blue">授業コード SLIDE-QA</span>
+            <span class="tag green">質問受付中</span>
+            <span class="tag orange">Q&A CSV対応</span>
+          </div>
+          <span class="btn" style="width:100%">発表者画面を開く</span>
+        </a>
 
-        <div style="text-align: center; padding: 32px 20px 24px;">
-          <span style="font-size: 48px;">🗂️</span>
-          <h1 style="font-size: 24px; font-weight: 800; color: #1a1a2e; margin: 12px 0 8px;">質問整理AI</h1>
-          <p style="font-size: 14px; color: #64748b;">あなたはどちらですか？</p>
+        <a class="project-card" href="audience.html">
+          <h2>聴衆として参加</h2>
+          <p class="muted">スマホや別タブから質問を入力・送信します。</p>
+          <div class="project-meta">
+            <span class="tag purple">自由質問</span>
+            <span class="tag green">自動回答対応</span>
+          </div>
+          <span class="btn secondary" style="width:100%">聴衆ページを開く</span>
+        </a>
+
+        <div class="project-card" style="cursor:default">
+          <h2>新規プロジェクト</h2>
+          <p class="muted">将来的に、発表ごとに資料・授業コード・Q&A CSVを分けて管理できます。</p>
+          <div class="project-meta">
+            <span class="tag">今後実装予定</span>
+          </div>
+          <button class="btn secondary" style="width:100%" disabled>作成</button>
         </div>
-
-        <div class="role-grid">
-          <!-- 発表者 -->
-          <a href="presenter.html" class="role-card">
-            <span class="role-card-icon">👨‍🏫</span>
-            <div class="role-card-title">発表者ページ</div>
-            <div class="role-card-desc">
-              聴衆用QRコードの表示、<br />
-              質問一覧の確認、AI整理結果を見る
-            </div>
-          </a>
-
-          <!-- 聴衆 -->
-          <a href="audience.html" class="role-card">
-            <span class="role-card-icon">👥</span>
-            <div class="role-card-title">聴衆ページ</div>
-            <div class="role-card-desc">
-              発表者への質問を<br />
-              入力・送信する
-            </div>
-          </a>
-        </div>
-
-        <div style="text-align: center; margin-top: 24px;">
-          <a href="index.html" class="back-link">← トップに戻る</a>
-        </div>
-
       </div>
-    </main>
-
-    <script src="script.js"></script>
-  </body>
+    </div>
+  </section>
+  <script src="script.js"></script>
+</body>
 </html>

@@ -1,104 +1,146 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>発表者ページ - 発表支援AIアプリ</title>
-    <link rel="stylesheet" href="style.css" />
-    <!-- QRコード生成ライブラリ (CDN) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  </head>
-  <body>
-    <header class="page-header">
-      <div class="container">
-        <a href="index.html" class="app-name">🎤 発表支援AI</a>
-        <span class="page-title">👨‍🏫 発表者ページ</span>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>発表者画面 - 発表支援AI</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+  <section class="screen active">
+    <div class="app">
+      <div class="topbar">
+        <div>
+          <div class="brand">発表者画面：質問整理AI デモ</div>
+          <div class="muted" style="font-size:13px">授業コード：SLIDE-QA / 聴衆からの質問をリアルタイムに確認できます。</div>
+        </div>
+        <div class="topbar-actions">
+          <a class="btn secondary small" href="qa-entry.html">プロジェクト管理へ</a>
+          <a class="btn secondary small" href="index.html">ログアウト</a>
+        </div>
       </div>
-    </header>
 
-    <main class="main-content">
-      <div class="container">
-
-        <!-- QRコードセクション -->
-        <div class="card">
-          <h2 class="card-title"><span class="icon">📱</span> 聴衆用QRコード</h2>
-          <p class="card-desc">このQRコードをスクリーンに映して、聴衆に質問を送ってもらいましょう。</p>
-
-          <div class="qr-section">
-            <div class="qr-box">
-              <div id="qrcode"></div>
-              <div style="font-size: 11px; color: #94a3b8; margin-top: 8px;">聴衆用ページ</div>
+      <div class="layout">
+        <aside class="panel">
+          <div class="section">
+            <h3>スライドアップロード</h3>
+            <input class="form-input" type="file" id="slide-file" accept=".pdf,.ppt,.pptx,.png,.jpg,.jpeg,.webp,.txt,.md,.markdown,.docx" />
+            <label>補足メモ</label>
+            <textarea id="slide-notes" rows="2" placeholder="AIへの説明を追加"></textarea>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button class="btn" id="upload-slide-ai-btn" type="button" style="flex:1" onclick="uploadSlide('ai')">AIにアップロード</button>
+              <button class="btn secondary" id="upload-slide-display-btn" type="button" style="flex:1" onclick="uploadSlide('display')">表示用にアップロード</button>
             </div>
-            <div class="qr-info">
-              <div class="form-label">聴衆用URL</div>
-              <div class="qr-url-box" id="audience-url">読み込み中...</div>
-              <button class="btn btn-secondary" onclick="copyAudienceUrl()" style="width: 100%;">
-                📋 URLをコピー
-              </button>
-              <div class="qr-note">
-                ⚠️ ローカル環境では、同じPCの別タブで聴衆ページを開いてデモできます。
-                スマホからアクセスする場合は、<strong>PCのローカルIPアドレス</strong>を使用してください。<br />
-                例: <code>http://192.168.x.x:3000/audience.html</code>
+            <span class="muted" id="slide-upload-status" style="font-size:13px;display:block;text-align:center;margin-top:6px">PDF・画像は画面表示</span>
+          </div>
+
+          <div class="section">
+            <h2>講義管理</h2>
+            <label>講義名</label>
+            <input value="質問整理AI デモ" aria-label="講義名" />
+            <button class="btn" type="button" style="width:100%;margin-top:12px" onclick="window.open('share-audience.html', '_blank')">聴衆ページを共有</button>
+          </div>
+
+          <div class="section">
+            <h3>過去質問データベース</h3>
+            <div class="upload">
+              <input class="form-input" type="file" id="qa-csv-file" accept=".csv,text/csv" style="margin-top:10px" />
+              <button class="btn secondary small" id="upload-qa-btn" type="button" style="margin-top:10px;width:100%" onclick="uploadQaDatabase()">CSVを追加</button>
+            </div>
+            <div class="qa-db-status" id="qa-db-status">状態を読み込み中...</div>
+            <div class="action-bar">
+              <button class="btn secondary small" type="button" onclick="downloadQaTemplate()">テンプレートCSV</button>
+              <button class="btn secondary small" type="button" onclick="fetchQaDatabaseStatus()">状態更新</button>
+            </div>
+            <div class="qa-upload-msg" id="qa-upload-msg" style="display:none"></div>
+          </div>
+        </aside>
+
+        <main class="panel">
+          <div class="cluster-head" style="display:none">
+            <h2 style="margin:0">スライド表示</h2>
+            <button class="btn secondary small" type="button" onclick="fetchCurrentSlide()">表示更新</button>
+          </div>
+
+          <div id="presenter-slide-view" class="slide-box slide-viewer">
+            <div>
+              <span class="slide-tag">Slide Q&A AI</span>
+              <div class="slide-title">スライド未アップロード</div>
+              <ul>
+                <li>発表者画面からスライドをアップロード</li>
+                <li>同じスライドが聴衆画面にも表示</li>
+                <li>発表者が任意のタイミングで逆質問を生成・配信</li>
+              </ul>
+            </div>
+            <div style="color:#dbeafe">ここに発表中のスライドが表示されます</div>
+          </div>
+
+          <div class="panel" style="box-shadow:none;margin-top:16px;background:#f8fafc">
+            <div class="cluster-head">
+              <h3 style="margin:0">質問ログ <span id="question-count" style="font-size:14px;color:#64748b;font-weight:400">（0件）</span></h3>
+              <button class="btn secondary small" type="button" onclick="fetchQuestions()">更新</button>
+            </div>
+            <div class="action-bar">
+              <button class="btn secondary small" type="button" onclick="addDemoQuestions()">デモ質問を追加</button>
+              <button class="btn danger small" type="button" onclick="resetQuestions()">リセット</button>
+            </div>
+            <div id="question-list-area" style="margin-top:14px">
+              <div class="empty-state">まだ質問がありません</div>
+            </div>
+            <div style="font-size:12px;color:#94a3b8;margin-top:12px;text-align:right">10秒ごとに自動更新</div>
+          </div>
+        </main>
+
+        <aside class="panel">
+          <div class="section">
+            <h2>回答分析</h2>
+            <div class="stats">
+              <div class="stat"><span>質問数</span><b id="question-total-stat">0件</b></div>
+              <div class="stat"><span>自動回答</span><b id="auto-answer-stat">0件</b></div>
+              <div class="stat wide-stat">
+                <span>AI整理</span>
+                <b id="analysis-status">未実行</b>
+                <div class="bar-bg"><div id="analysisBar" class="bar"></div></div>
               </div>
             </div>
-          </div>
-        </div>
 
-        <!-- 質問一覧セクション -->
-        <div class="card">
-          <h2 class="card-title"><span class="icon">💬</span> 集まった質問 <span id="question-count" style="font-size:14px; color:#64748b; font-weight:400;">（0件）</span></h2>
+            <button class="btn" id="analyze-btn" type="button" style="width:100%;margin-top:12px" onclick="analyzeQuestions()">AIで質問を整理する</button>
+            <div class="loading-overlay" id="loading-area"><div class="spinner"></div>AIが質問を分析しています...</div>
 
-          <div class="action-bar">
-            <button class="btn btn-secondary" onclick="fetchQuestions()">🔄 質問を更新</button>
-            <button class="btn btn-secondary" onclick="addDemoQuestions()">✨ デモ質問を追加</button>
-            <button class="btn btn-danger" onclick="resetQuestions()">🗑️ 質問をリセット</button>
+            <h3 style="margin-top:18px">AI要約</h3>
+            <div id="summary" class="ai-summary">質問が集まったら「AIで質問を整理する」を押してください。似た質問をグループ化し、回答の優先順位とヒントを表示します。</div>
+            <div id="result-area" style="margin-top:14px"></div>
           </div>
 
-          <div id="question-list-area">
-            <div class="empty-state">
-              <span class="empty-icon">📭</span>
-              まだ質問がありません。<br />
-              聴衆にQRコードを読み込んでもらうか、「デモ質問を追加」を押してください。
+          <div class="section reverse-section">
+            <div class="cluster-head">
+              <div>
+                <h3 style="margin:0">逆質問</h3>
+                <div class="muted" style="font-size:13px;margin-top:4px">発表者が押したタイミングで、逆質問を配信します。</div>
+              </div>
+              <button class="btn small" id="reverse-question-btn" type="button" onclick="generateReverseQuestion()">逆質問を生成</button>
             </div>
+            <div class="loading-overlay" id="reverse-loading"><div class="spinner"></div>AIが逆質問を作成しています...</div>
+            <div id="reverse-question-area" class="ai-summary" style="margin-top:12px">まだ配信されていません。</div>
+            <div class="action-bar">
+              <button class="btn secondary small" type="button" onclick="fetchReverseQuestion()">更新</button>
+              <button class="btn danger small" type="button" onclick="clearReverseQuestion()">非表示</button>
+            </div>
+            <h3 style="margin-top:16px">回答</h3>
+            <div id="reverse-answer-area" class="empty-state" style="padding:18px 10px">まだ回答がありません。</div>
           </div>
-
-          <!-- 自動更新の案内 -->
-          <div style="font-size: 12px; color: #94a3b8; margin-top: 12px; text-align: right;">
-            ⏱️ 10秒ごとに自動更新
-          </div>
-        </div>
-
-        <!-- AIで整理するセクション -->
-        <div class="card">
-          <h2 class="card-title"><span class="icon">🤖</span> AIで質問を整理する</h2>
-          <p class="card-desc">
-            集まった質問をAIがグループ化・要約・優先順位づけします。<br />
-            <span style="font-size: 12px; color: #94a3b8;">※ 現在はデモ用のモックデータを表示します。将来的にAI APIに接続予定。</span>
-          </p>
-
-          <button class="btn btn-primary btn-lg" id="analyze-btn" onclick="analyzeQuestions()">
-            🗂️ AIで質問を整理する
-          </button>
-
-          <!-- ローディング -->
-          <div class="loading-overlay" id="loading-area">
-            <div class="spinner"></div>
-            AIが質問を分析しています...
-          </div>
-
-          <!-- 整理結果 -->
-          <div id="result-area" style="margin-top: 20px;"></div>
-        </div>
-
+        </aside>
       </div>
-    </main>
+    </div>
+  </section>
 
-    <script src="script.js"></script>
-    <script>
-      // ページ読み込み時の初期化
-      document.addEventListener("DOMContentLoaded", function () {
-        initPresenterPage();
-      });
-    </script>
-  </body>
+  <div id="toast" class="toast"></div>
+  <script src="script.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      initPresenterPage();
+    });
+  </script>
+</body>
 </html>

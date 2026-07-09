@@ -1,105 +1,48 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>発表支援AIアプリ</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <!-- ヘッダー -->
-    <header class="page-header">
-      <div class="container">
-        <a href="index.html" class="app-name">🎤 発表支援AI</a>
-        <span class="page-title">トップページ</span>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>発表支援AIアプリ</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <section class="screen active">
+    <div class="login-wrap">
+      <div class="login-card">
+        <div class="logo">AI</div>
+        <h1>発表支援AI</h1>
+        <p class="muted" id="loginHelp">発表者はプロジェクト管理へ、聴衆は質問送信ページへ進みます。</p>
+
+        <label>ログイン種別</label>
+        <div class="role-row">
+          <button id="presenterRole" class="role-btn active" type="button" onclick="selectRole('presenter')">発表者</button>
+          <button id="audienceRole" class="role-btn" type="button" onclick="selectRole('audience')">聴衆</button>
+        </div>
+
+        <div id="presenterLoginFields">
+          <label>メールアドレス</label>
+          <input value="teacher@example.com" aria-label="メールアドレス" />
+          <label>パスワード</label>
+          <input type="password" value="password" aria-label="パスワード" />
+        </div>
+
+        <div id="audienceLoginFields" style="display:none">
+          <label>授業コード</label>
+          <input value="SLIDE-QA" aria-label="授業コード" />
+          <label>パスワード</label>
+          <input type="password" value="1234" aria-label="パスワード" />
+        </div>
+
+        <button class="btn" style="width:100%;margin-top:18px" type="button" onclick="loginFromHome()">ログイン</button>
+
+        <div style="margin-top:16px;font-size:12px;line-height:1.7" class="muted">
+          ※ デモ版のため、入力内容の認証は行いません。現状アプリの質問送信・質問一覧・CSVアップロード・AI整理機能をそのまま使います。
+        </div>
       </div>
-    </header>
+    </div>
+  </section>
 
-    <main class="main-content">
-      <div class="container">
-
-        <!-- ヒーローセクション -->
-        <div class="hero">
-          <span class="hero-badge">授業デモ版 v1.0</span>
-          <h1 class="hero-title">発表支援AIアプリ</h1>
-          <p class="hero-subtitle">
-            AIが質問を整理し、発表者の次のアクションを支援する。<br />
-          </p>
-          <div class="hero-diff">
-            ✨ 既存ツールは「質問を集める」だけ。このアプリは「整理して次の行動を提案」します。
-          </div>
-        </div>
-
-        <!-- 機能カードグリッド -->
-        <div class="feature-grid">
-
-          <!-- カード1: 質問整理AI -->
-          <div class="feature-card">
-            <span class="feature-card-icon">🗂️</span>
-            <span class="feature-card-tag tag-main">メイン機能</span>
-            <h2 class="feature-card-title">質問整理AI</h2>
-            <p class="feature-card-desc">
-              聴衆から集まった質問をAIがグループ化・要約・優先順位づけします。
-              発表者が答えやすい形に自動整理。
-            </p>
-            <ul class="feature-card-points">
-              <li>似た質問をグループ化</li>
-              <li>質問の優先順位づけ</li>
-              <li>回答のヒントを提案</li>
-              <li>QRコードで聴衆と繋がる</li>
-            </ul>
-            <a href="qa-entry.html" class="btn btn-primary btn-full">使ってみる →</a>
-          </div>
-
-
-          <!-- カード3: リアルタイム（将来機能） -->
-          <div class="feature-card disabled">
-            <span class="coming-soon-badge">今後実装予定</span>
-            <span class="feature-card-icon">🎙️</span>
-            <span class="feature-card-tag tag-future">発展機能</span>
-            <h2 class="feature-card-title">リアルタイム発表サポートAI</h2>
-            <p class="feature-card-desc">
-              発表中に聴衆の反応をもとに「次に話すべき内容」を
-              AIがリアルタイムで提案します。
-            </p>
-            <ul class="feature-card-points">
-              <li>発表中にAIが短くアドバイス</li>
-              <li>聴衆の反応をリアルタイム分析</li>
-              <li>次のスライドへの移行を支援</li>
-            </ul>
-            <div style="background:#f8fafc; border-radius:8px; padding:12px; font-size:12px; color:#94a3b8; line-height:1.6;">
-              💬 例：「似た質問が複数届いています。ここで一度まとめて答えるとよさそうです。」
-            </div>
-          </div>
-
-        </div>
-
-        <!-- 差別化ポイント説明 -->
-        <div class="card" style="margin-top: 32px; background: #eff6ff; border-color: #bfdbfe;">
-          <h3 class="card-title" style="color: #1d4ed8;">
-            <span class="icon">💡</span> 既存ツールとの違い
-          </h3>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 8px;">
-            <div style="background: #ffffff; border-radius: 10px; padding: 16px;">
-              <div style="font-size: 13px; font-weight: 700; color: #64748b; margin-bottom: 8px;">Slido / Mentimeter</div>
-              <p style="font-size: 13px; color: #475569; line-height: 1.65;">
-                質問や投票を「集める」ことが中心。<br />
-                集まった質問は一覧で並ぶだけで、整理は発表者任せ。
-              </p>
-            </div>
-            <div style="background: #ffffff; border-radius: 10px; padding: 16px; border: 2px solid #93c5fd;">
-              <div style="font-size: 13px; font-weight: 700; color: #2563eb; margin-bottom: 8px;">このアプリ ✨</div>
-              <p style="font-size: 13px; color: #334155; line-height: 1.65;">
-                AIが質問を整理して「次に何を話すべきか」まで提案。<br />
-                発表者の質疑応答をスムーズに支援します。
-              </p>
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </main>
-
-    <script src="script.js"></script>
-  </body>
+  <script src="script.js"></script>
+</body>
 </html>

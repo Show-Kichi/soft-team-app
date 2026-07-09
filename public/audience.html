@@ -1,88 +1,69 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>質問を送る - 発表支援AIアプリ</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <header class="page-header">
-      <div class="container">
-        <a href="index.html" class="app-name">🎤 発表支援AI</a>
-        <span class="page-title">👥 聴衆ページ</span>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>聴衆画面 - 発表支援AI</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <section class="screen active">
+    <div class="audience-shell">
+      <div class="topbar">
+        <div>
+          <div class="brand">聴衆画面</div>
+          <div class="muted" style="font-size:13px">授業コード：SLIDE-QA</div>
+        </div>
+        <a class="btn secondary small" href="index.html">ログアウト</a>
       </div>
-    </header>
 
-    <main class="main-content">
-      <div class="container" style="max-width: 560px;">
+      <div class="audience-status">
+        <h2>現在発表中です</h2>
+        <p class="muted">発表内容について、気になったことを自由に質問できます。</p>
 
-        <!-- ヒーロー -->
-        <div class="audience-hero">
-          <span class="audience-hero-icon">✋</span>
-          <h1 class="audience-hero-title">発表者に質問を送る</h1>
-          <p class="audience-hero-sub">
-            気になったこと、疑問に思ったことを送信してください。<br />
-            AIが整理して発表者に届けます。
-          </p>
+        <div class="current-slide slide-viewer" id="audience-slide-view">
+          <div>
+            <div class="slide-tag">Slide Q&A AI</div>
+            <div style="font-size:28px;font-weight:900;margin-top:10px">スライド未アップロード</div>
+            <p style="color:#dbeafe;margin-top:12px">発表者がスライドをアップロードするとここに表示されます。</p>
+          </div>
         </div>
 
-        <!-- 質問フォーム -->
-        <div class="card">
-          <div class="form-group">
-            <label class="form-label" for="question-input">質問を入力してください</label>
-            <textarea
-              id="question-input"
-              class="form-textarea"
-              placeholder="例：なぜこの手法を選んだのですか？"
-              rows="4"
-              maxlength="500"
-            ></textarea>
-            <div style="font-size: 12px; color: #94a3b8; text-align: right; margin-top: 4px;">
-              <span id="char-count">0</span> / 500文字
-            </div>
-          </div>
+        <div class="question reverse-audience-card" id="audience-reverse-question-area" style="display:none;border-color:#ddd6fe;background:#faf5ff"></div>
 
-          <button class="btn btn-primary btn-lg btn-full" id="send-btn" onclick="submitQuestion()">
-            📨 質問を送信する
-          </button>
-
-          <!-- 送信完了メッセージ -->
-          <div class="success-toast" id="success-toast">
-            ✅ 質問を送信しました。発表者画面に反映されます。
-          </div>
-
-          <!-- エラーメッセージ -->
-          <div id="error-msg" style="display:none; color: #dc2626; font-size: 13px; margin-top: 10px; text-align: center;"></div>
+        <div class="question" style="border-color:#cbd5e1;background:#fff">
+          <span class="tag purple">自由質問</span>
+          <div class="question-title" style="font-size:19px">発表内容について質問する</div>
+          <textarea id="question-input" rows="4" maxlength="500" placeholder="例：なぜこの手法を選んだのですか？"></textarea>
+          <div style="font-size:12px;color:#94a3b8;text-align:right;margin-top:4px"><span id="char-count">0</span> / 500文字</div>
+          <button class="btn" id="send-btn" type="button" style="width:100%;margin-top:12px" onclick="submitQuestion()">質問を送信</button>
+          <div class="success-toast" id="success-toast">質問を送信しました。発表者画面に反映されます。</div>
+          <div id="error-msg" style="display:none;color:#dc2626;font-size:13px;margin-top:10px;text-align:center"></div>
         </div>
 
-        <!-- 送信した質問の記録 -->
-        <div class="card" id="sent-list-card" style="display:none;">
-          <h3 class="card-title" style="font-size: 14px;">
-            <span class="icon">📝</span> この端末から送った質問
-          </h3>
+        <div class="qa-item auto-answer-card" id="auto-answer-card" style="display:none;margin-top:14px">
+          <span class="tag green">Q&A CSVから自動回答</span>
+          <h3 style="margin-top:10px">過去の質問からの自動回答</h3>
+          <p class="auto-answer-content" id="auto-answer-content"></p>
+          <p class="auto-answer-matched" id="auto-answer-matched"></p>
+        </div>
+
+        <div class="question" id="sent-list-card" style="display:none;border-color:#bbf7d0;background:#f0fdf4">
+          <span class="tag green">送信履歴</span>
+          <div class="question-title" style="font-size:18px">この端末から送った質問</div>
           <ul class="question-list" id="sent-list"></ul>
-          <div style="text-align: center; margin-top: 12px;">
-            <button class="btn btn-secondary" onclick="clearSentList()" style="font-size: 12px; padding: 6px 14px;">
-              リストをクリア
-            </button>
-          </div>
+          <button class="btn secondary small" type="button" onclick="clearSentList()">リストをクリア</button>
         </div>
-
-        <div style="text-align: center; margin-top: 16px;">
-          <p style="font-size: 12px; color: #94a3b8;">
-            送信した質問はAIによって整理され、発表者に届きます
-          </p>
-        </div>
-
       </div>
-    </main>
+    </div>
+  </section>
 
-    <script src="script.js"></script>
-    <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        initAudiencePage();
-      });
-    </script>
-  </body>
+  <div id="toast" class="toast"></div>
+  <script src="script.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      initAudiencePage();
+    });
+  </script>
+</body>
 </html>
